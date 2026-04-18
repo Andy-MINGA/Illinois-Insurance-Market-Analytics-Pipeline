@@ -11,12 +11,12 @@ This project delivers an end-to-end data engineering pipeline and competitive in
 
 By programmatically extracting data from the **Illinois Department of Insurance (IDOI)** annual filings, I transformed unstructured financial tables into a structured "Source of Truth." This analysis provides critical insights into market concentration, helping stakeholders identify dominant carriers and competitive shifts in the automotive liability sector for the 2024 fiscal year.
 
-## 📂 Data Provenance & Source
+## Data Provenance & Source
 * **Primary Source:** [IDOI 2024 P&C Market Share Report](https://idoi.illinois.gov/content/dam/soi/en/web/insurance/reports/reports/2024-pc-market-share-report.pdf)
 * **Specific Focus:** "Other Private Passenger Auto Liability"
 * **Data Context:** This specific line represents a significant portion of the Illinois P&C market, covering third-party liability claims for private vehicle owners.
 
-## 🏗️ Technical Architecture
+## Technical Architecture
 
 ### 1. Automated Extraction (Python)
 * **Tooling:** `tabula-py` and `pandas`.
@@ -37,17 +37,17 @@ By programmatically extracting data from the **Illinois Department of Insurance 
 * **Market Distribution:** Used Treemaps and Donut charts to visualize the massive footprint of top-tier carriers vs. the "Long Tail" of smaller providers.
 * **DAX Precision:** Built measures to ensure market share remains accurate even when users filter for specific carriers or groups, preventing "Filter Distortion" in the percentages.
 
-## 🧠 Key Challenges & Solutions
+## Key Challenges & Solutions
 
-### 🛡️ Programmatic PDF Parsing
+### Programmatic PDF Parsing
 **Challenge:** Extracting data from 8 pages of a regulatory PDF often results in misaligned columns or missing rows due to page breaks and complex headers.
 **Solution:** I used Python to automate the extraction, specifying the exact page range (223–230) and using a stream-based parsing method (`lattice=False`) to capture data accurately based on the document's whitespace structure.
 
-### 🧹 Entity Normalization
+### Entity Normalization
 **Challenge:** Identifying true market dominance is difficult when companies file under multiple subsidiary names (e.g., "State Farm Fire" vs "State Farm Mutual").
 **Solution:** I built a dbt transformation layer to aggregate these entities, allowing for a parent-company level view of market share and ranking.
 
-## 🚀 How to Run
+## How to Run
 1.  **Extract:** Run the Python script to process the IDOI PDF and generate the raw dataset.
 2.  **Load:** Upload the CSV to the Snowflake stage.
 3.  **Transform:** Execute `dbt run` to generate the final analytical models.
