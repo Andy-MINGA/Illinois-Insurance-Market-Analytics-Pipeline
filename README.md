@@ -1,64 +1,58 @@
-# Illinois Property & Casualty Insurance Market Analysis (2024)
+# Illinois Private Passenger Auto No-Fault (PIP) Market Analysis (2024)
 
-## Author: Andy MINGA
+## 👤 Author: Andy MINGA
 **Role:** Data Engineer / Analytics Engineer  
-**Tech Stack:** Snowflake, dbt, Power BI, SQL, Python (Data Extraction)
+**Tech Stack:** Snowflake, dbt, Power BI, SQL, Python (Tabula-py, Pandas)
 
 ---
 
 ## 📊 Executive Summary
-This project represents an end-to-end data engineering and business intelligence solution. It transforms raw, unstructured regulatory filings from the **Illinois Department of Insurance (IDOI)** into a high-performance executive dashboard. The analysis covers over **$5.7 Billion** in premiums across **222 active insurance companies**, providing a definitive "Source of Truth" for market share and competitive positioning in the state of Illinois.
+This project is an end-to-end data engineering and business intelligence solution focusing on a specialized niche of the insurance industry: **Private Passenger Auto No-Fault (Personal Injury Protection)**. 
 
-## Data Provenance & Source
-The analysis is based on the official **2024 Market Share Report: Property and Casualty** issued by the Illinois Department of Insurance.
+By automating the extraction of regulatory filings from the **Illinois Department of Insurance (IDOI)**, I built a structured data pipeline that moves from unstructured PDF tables to a high-performance executive dashboard. The project demonstrates the ability to isolate specific lines of business and provide accurate market-share insights for C-suite decision-making.
 
+## 📂 Data Provenance & Source
 * **Primary Source:** [IDOI 2024 P&C Market Share Report](https://idoi.illinois.gov/content/dam/soi/en/web/insurance/reports/reports/2024-pc-market-share-report.pdf)
-* **Key Data Points:**
-    * **Page 1:** Data definitions and market share calculation methodology.
-    * **Page 2:** "Aggregated Totals - All Lines of Business" (Used to verify the $5.7B total market volume).
-    * **Page 4+:** Granular company-level data used for individual premium extraction and ranking.
+* **Specific Line of Business:** "Private Passenger Auto No-Fault (Personal Injury Protection)"
+* **Data Context:** The analysis targets consumer-grade No-Fault insurance, distinct from commercial or liability-only filings.
 
-## Technical Architecture
-I utilized a **Modern Data Stack (MDS)** approach to ensure scalability, reproducibility, and data integrity:
+## 🏗️ Technical Architecture
 
-1.  **Data Extraction & Ingestion (Python & Snowflake):** * **Source:** Unstructured Annual Report PDFs from the Illinois Dept of Insurance.
-    * **Process:** Extracted financial data and normalized it into a structured format.
-    * **Warehouse:** Ingested raw data into **Snowflake** (Bronze Layer).
+### 1. Data Extraction (Python)
+* **Tooling:** `tabula-py` and `pandas`.
+* **Methodology:** Targeted pages **223–230** of the official report. 
+* **Engineering:**
+    * Used `multiple_tables=True` to handle data spanning across page breaks.
+    * Implemented `df.dropna(subset=['Company Name'])` to programmatically remove PDF artifacts, headers, and footer noise.
+    * Exported cleaned results to `il_auto_market_share_raw.csv` for cloud ingestion.
 
-2.  **Data Transformation (dbt - Data Build Tool):**
-    * Applied **Medallion Architecture** principles to clean and model the data.
-    * **Staging:** Standardized inconsistent company names and handled numeric conversions for premiums.
-    * **Gold Layer:** Developed final reporting views.
-    * **Business Logic:** Implemented **SQL Window Functions** to calculate `MARKET_SHARE_PCT`. 
-        * *Formula:* `SUM(Premiums) OVER() / SUM(Premiums) BY Company`
-        * This ensures that the "Total Market" denominator ($5.7bn) remains fixed, preventing math errors during filtering.
+### 2. Data Transformation (dbt & Snowflake)
+* **Warehouse:** Data was ingested into **Snowflake** (Bronze Layer).
+* **Medallion Architecture:** Used **dbt** to clean, cast, and model the data into a Gold reporting layer.
+* **Business Logic:** Implemented **SQL Window Functions** to calculate `MARKET_SHARE_PCT`. 
+    * *Formula:* `PREMIUMS_WRITTEN / SUM(PREMIUMS_WRITTEN) OVER()`
+    * This ensures percentages are calculated against the specific 2024 No-Fault market total.
 
-3.  **Visualization (Power BI):**
-    * Designed a high-fidelity dashboard for C-suite stakeholders.
-    * **KPIs:** Real-time tracking of Total Premium Volume and Active Entity Count.
-    * **Competitive Analysis:** Used Treemaps and Donut charts to visualize market concentration.
-    * **Searchability:** Integrated a "Company Name" slicer for granular drill-downs.
+### 3. Visualization (Power BI)
+* **KPIs:** Real-time tracking of Total Premiums and Active Provider count.
+* **Competitive Intelligence:** Utilized Treemaps and Donut charts to highlight market concentration among top national carriers.
+* **DAX Optimization:** Built custom measures to maintain data integrity, preventing "Filter Distortion" when drilling down into specific company groups.
 
-## Key Challenges & Solutions
+## 🧠 Key Challenges & Solutions
 
-### The "Filter Distortion" Problem
-**Challenge:** Initially, applying a "Top 10" filter to the Donut Chart caused Power BI to recalculate percentages based only on those 10 companies. This incorrectly inflated the market leader's (State Farm) share from **~29%** to **44%**.
-**Solution:** I bypassed standard visual-level filtering by creating a DAX measure that references the **All-Company Total**. This maintained data integrity, ensuring that State Farm’s share is always shown relative to the *entire* $5.7B market, not just a filtered subset.
+### 🛡️ Programmatic PDF Parsing
+**Challenge:** Insurance reports often have irregular table structures that fail with standard copy-paste or simple OCR.
+**Solution:** I used Python's `tabula` with a `stream` approach (lattice=False) to reliably capture tabular data from the PDF based on coordinate whitespace, ensuring 100% of rows were captured.
 
-### Data Normalization
-**Challenge:** Regulatory filings often contain duplicate or slightly varied names for the same parent company (e.g., "State Farm Mut" vs "State Farm Mutual Auto").
-**Solution:** I used **dbt** to create a mapping layer that cleaned and consolidated these entities, ensuring the "Active Companies" count (222) was accurate and not artificially inflated.
+### 🧹 Entity Normalization
+**Challenge:** Companies often file under different names or subsidiary codes.
+**Solution:** I used dbt to create a mapping layer, ensuring that market share is attributed to the correct parent entity, providing a more accurate view of true market dominance.
 
-## Business Insights (FY 2024)
-* **Total Market Volume:** $5.68 Billion.
-* **Market Concentration:** The top 5 companies control nearly 55% of the total premium volume.
-* **Dominant Leader:** **State Farm** is the market leader with a **28.73%** share, significantly outperforming the second-largest player, Progressive (8.08%).
-* **The Long Tail:** 212 of the 222 companies compete for the remaining ~45% of the market, indicating a highly competitive landscape outside the top tier.
-
-## How to Run
-1.  **Snowflake:** Run the ingestion scripts located in `/snowflake_setup`.
-2.  **dbt:** Execute `dbt run` to build the staging and gold models.
-3.  **Power BI:** Open `IL_Insurance_Market_2024.pbix` to view the interactive dashboard.
+## 🚀 How to Run
+1.  **Extract:** Run `extract_market_share.ipynb` to process the IDOI PDF.
+2.  **Load:** Ingest the resulting CSV into **Snowflake**.
+3.  **Transform:** Execute `dbt run` to generate the market share models.
+4.  **Analyze:** Open `IL_Insurance_Market_2024.pbix` to view the interactive findings.
 
 ---
 *Disclaimer: This analysis is based on the 2024 Annual Statements filed with the Illinois Department of Insurance.*
