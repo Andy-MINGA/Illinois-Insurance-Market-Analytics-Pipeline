@@ -9,6 +9,15 @@
 ## 📊 Executive Summary
 This project represents an end-to-end data engineering and business intelligence solution. It transforms raw, unstructured regulatory filings from the **Illinois Department of Insurance (IDOI)** into a high-performance executive dashboard. The analysis covers over **$5.7 Billion** in premiums across **222 active insurance companies**, providing a definitive "Source of Truth" for market share and competitive positioning in the state of Illinois.
 
+## Data Provenance & Source
+The analysis is based on the official **2024 Market Share Report: Property and Casualty** issued by the Illinois Department of Insurance.
+
+* **Primary Source:** [IDOI 2024 P&C Market Share Report](https://idoi.illinois.gov/content/dam/soi/en/web/insurance/reports/reports/2024-pc-market-share-report.pdf)
+* **Key Data Points:**
+    * **Page 1:** Data definitions and market share calculation methodology.
+    * **Page 2:** "Aggregated Totals - All Lines of Business" (Used to verify the $5.7B total market volume).
+    * **Page 4+:** Granular company-level data used for individual premium extraction and ranking.
+
 ## Technical Architecture
 I utilized a **Modern Data Stack (MDS)** approach to ensure scalability, reproducibility, and data integrity:
 
